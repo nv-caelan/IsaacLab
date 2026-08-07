@@ -24,6 +24,62 @@ gym.register(
 )
 
 gym.register(
+    id="Isaac-Stack-Cube-Franka-Visuomotor-v0",
+    entry_point="isaaclab.envs:ManagerBasedRLEnv",
+    kwargs={
+        "env_cfg_entry_point": (
+            f"{__name__}.stack_joint_pos_visuomotor_env_cfg:FrankaCubeStackJointPosVisuomotorEnvCfg"
+        ),
+        "robomimic_bc_cfg_entry_point": f"{agents.__name__}:robomimic/bc_rnn_image_200_joint_pos.json",
+    },
+    disable_env_checker=True,
+)
+
+gym.register(
+    id="Isaac-Stack-Cube-Franka-Joint-Abs-v0",
+    entry_point="isaaclab.envs:ManagerBasedRLEnv",
+    kwargs={
+        "env_cfg_entry_point": f"{__name__}.stack_joint_abs_env_cfg:FrankaCubeStackJointAbsEnvCfg",
+        "robomimic_bc_cfg_entry_point": f"{agents.__name__}:robomimic/bc_rnn_low_dim_joint_pos.json",
+    },
+    disable_env_checker=True,
+)
+
+gym.register(
+    id="Isaac-Stack-Cube-Franka-Joint-Abs-Visuomotor-v0",
+    entry_point="isaaclab.envs:ManagerBasedRLEnv",
+    kwargs={
+        "env_cfg_entry_point": (
+            f"{__name__}.stack_joint_abs_visuomotor_env_cfg:FrankaCubeStackJointAbsVisuomotorEnvCfg"
+        ),
+        "robomimic_bc_cfg_entry_point": f"{agents.__name__}:robomimic/bc_rnn_image_200_joint_pos.json",
+    },
+    disable_env_checker=True,
+)
+
+gym.register(
+    id="Isaac-Stack-Cube-Franka-Joint-Rel-v0",
+    entry_point="isaaclab.envs:ManagerBasedRLEnv",
+    kwargs={
+        "env_cfg_entry_point": f"{__name__}.stack_joint_rel_env_cfg:FrankaCubeStackJointRelEnvCfg",
+        "robomimic_bc_cfg_entry_point": f"{agents.__name__}:robomimic/bc_rnn_low_dim_joint_pos.json",
+    },
+    disable_env_checker=True,
+)
+
+gym.register(
+    id="Isaac-Stack-Cube-Franka-Joint-Rel-Visuomotor-v0",
+    entry_point="isaaclab.envs:ManagerBasedRLEnv",
+    kwargs={
+        "env_cfg_entry_point": (
+            f"{__name__}.stack_joint_rel_visuomotor_env_cfg:FrankaCubeStackJointRelVisuomotorEnvCfg"
+        ),
+        "robomimic_bc_cfg_entry_point": f"{agents.__name__}:robomimic/bc_rnn_image_200_joint_pos.json",
+    },
+    disable_env_checker=True,
+)
+
+gym.register(
     id="Isaac-Stack-Cube-Instance-Randomize-Franka-v0",
     entry_point="isaaclab.envs:ManagerBasedRLEnv",
     kwargs={
