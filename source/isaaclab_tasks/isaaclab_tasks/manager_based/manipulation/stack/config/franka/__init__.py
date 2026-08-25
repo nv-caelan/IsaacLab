@@ -217,3 +217,15 @@ gym.register(
     },
     disable_env_checker=True,
 )
+
+gym.register(
+    id="Isaac-Stack-Cube-Bin-Franka-IK-Rel-Visuomotor-Mimic-v0",
+    entry_point="isaaclab.envs:ManagerBasedRLEnv",
+    kwargs={
+        "env_cfg_entry_point": (
+            f"{__name__}.bin_stack_ik_rel_visuomotor_env_cfg:FrankaBinStackVisuomotorEnvCfg"
+        ),
+        "robomimic_bc_cfg_entry_point": f"{agents.__name__}:robomimic/bc_rnn_image_200.json",
+    },
+    disable_env_checker=True,
+)
