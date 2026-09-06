@@ -3,6 +3,8 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
+import torch
+
 import isaaclab.sim as sim_utils
 from isaaclab.assets import ArticulationCfg, RigidObjectCfg
 from isaaclab.controllers.differential_ik_cfg import DifferentialIKControllerCfg
@@ -397,3 +399,58 @@ class FrankaCubeStackTwoVisuomotorEnvCfg(FrankaCubeStackVisuomotorEnvCfg):
         self.observations.subtask_terms.grasp_2 = None
         self.terminations.cube_3_dropping = None
         self.terminations.success = DoneTerm(func=mdp.cubes_stacked, params={"cube_3_cfg": None})
+
+
+def cubes_stacked_four(
+    env,
+    robot_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+    cube_1_cfg: SceneEntityCfg = SceneEntityCfg("cube_1"),
+    cube_2_cfg: SceneEntityCfg = SceneEntityCfg("cube_2"),
+    cube_3_cfg: SceneEntityCfg = SceneEntityCfg("cube_3"),
+    cube_4_cfg: SceneEntityCfg = SceneEntityCfg("cube_4"),
+) -> torch.Tensor:
+    """Return whether all four cubes form a single tower (cube_2 on cube_1, cube_3 on cube_2, cube_4 on cube_3)."""
+    lower_stacked = mdp.cubes_stacked(env, robot_cfg, cube_1_cfg, cube_2_cfg, cube_3_cfg)
+    upper_stacked = mdp.cubes_stacked(env, robot_cfg, cube_3_cfg, cube_4_cfg, cube_3_cfg=None)
+    return lower_stacked & upper_stacked
+
+
+@configclass
+class FrankaCubeStackFourVisuomotorEnvCfg(FrankaCubeStackVisuomotorEnvCfg):
+    """Visuomotor cube stacking with a fourth (yellow) cube added to the usual blue, red, and green cubes."""
+
+    def __post_init__(self):
+        # post init of parent
+        super().__post_init__()
+
+        # Add a fourth cube to the scene, reusing the same rigid body properties as the others
+        self.scene.cube_4 = RigidObjectCfg(
+            prim_path="{ENV_REGEX_NS}/Cube_4",
+            init_state=RigidObjectCfg.InitialStateCfg(pos=[0.40, 0.15, 0.0203], rot=[0, 0, 0, 1]),
+            spawn=UsdFileCfg(
+                usd_path=f"{ISAAC_NUCLEUS_DIR}/Props/Blocks/yellow_block.usd",
+                scale=(1.0, 1.0, 1.0),
+                rigid_props=self.scene.cube_1.spawn.rigid_props,
+                semantic_tags=[("class", "cube_4")],
+            ),
+        )
+
+        # Also randomize the pose of the fourth cube
+        self.events.randomize_cube_positions.params["asset_cfgs"] = [
+            SceneEntityCfg("cube_1"),
+            SceneEntityCfg("cube_2"),
+            SceneEntityCfg("cube_3"),
+            SceneEntityCfg("cube_4"),
+        ]
+
+        # Drop the low-dimensional object observations and subtask terms
+        self.observations.policy.object = None
+        self.observations.policy.cube_positions = None
+        self.observations.policy.cube_orientations = None
+        self.observations.subtask_terms = None
+
+        # Add a termination for the fourth cube, and check the full four-cube tower for success
+        self.terminations.cube_4_dropping = DoneTerm(
+            func=mdp.root_height_below_minimum, params={"minimum_height": -0.05, "asset_cfg": SceneEntityCfg("cube_4")}
+        )
+        self.terminations.success = DoneTerm(func=cubes_stacked_four)
