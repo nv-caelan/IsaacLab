@@ -146,6 +146,26 @@ gym.register(
 )
 
 gym.register(
+    id="Isaac-Blocked-Cube-Franka-IK-Rel-Visuomotor-v0",
+    entry_point="isaaclab.envs:ManagerBasedRLEnv",
+    kwargs={
+        "env_cfg_entry_point": f"{__name__}.blocked_ik_rel_visuomotor_env_cfg:FrankaCubeBlockedVisuomotorEnvCfg",
+        "robomimic_bc_cfg_entry_point": f"{agents.__name__}:robomimic/bc_rnn_image_200.json",
+    },
+    disable_env_checker=True,
+)
+
+gym.register(
+    id="Isaac-Always-Blocked-Cube-Franka-IK-Rel-Visuomotor-v0",
+    entry_point="isaaclab.envs:ManagerBasedRLEnv",
+    kwargs={
+        "env_cfg_entry_point": f"{__name__}.blocked_ik_rel_visuomotor_env_cfg:FrankaCubeAlwaysBlockedVisuomotorEnvCfg",
+        "robomimic_bc_cfg_entry_point": f"{agents.__name__}:robomimic/bc_rnn_image_200.json",
+    },
+    disable_env_checker=True,
+)
+
+gym.register(
     id="Isaac-Stack-Cube-Franka-IK-Rel-Visuomotor-Cosmos-v0",
     entry_point="isaaclab.envs:ManagerBasedRLEnv",
     kwargs={

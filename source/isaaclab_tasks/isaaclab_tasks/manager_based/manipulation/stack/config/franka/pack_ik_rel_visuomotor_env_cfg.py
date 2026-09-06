@@ -18,9 +18,9 @@ from isaaclab_tasks.manager_based.manipulation.stack.mdp import franka_stack_eve
 
 from .stack_ik_rel_visuomotor_env_cfg import FrankaCubeStackVisuomotorEnvCfg
 
-# Cubes rest with their center this far above whatever surface they sit on (matches the
-# blue/red/green block convention used throughout this config family).
-CUBE_REST_HEIGHT_OFFSET = 0.0203
+# Edge length of the blue/red/green block USD assets used throughout this config family.
+# Cubes rest with their center half this height above whatever surface they sit on.
+CUBE_HEIGHT = 0.047
 
 PLATFORM_SIZE = (0.2, 0.2, 0.01)
 PLATFORM_POSITION = (0.5, 0.0, PLATFORM_SIZE[2] / 2)
@@ -31,28 +31,32 @@ _PLATFORM_HALF_Y = PLATFORM_SIZE[1] / 2
 LEFT_CUBE_POSE_RANGE = {
     "x": (PLATFORM_POSITION[0] - _RESET_BOX_SIZE / 2, PLATFORM_POSITION[0] + _RESET_BOX_SIZE / 2),
     "y": (PLATFORM_POSITION[1] + _PLATFORM_HALF_Y, PLATFORM_POSITION[1] + _PLATFORM_HALF_Y + _RESET_BOX_SIZE),
-    "z": (0.0203, 0.0203),
+    "z": (CUBE_HEIGHT / 2, CUBE_HEIGHT / 2),
     "yaw": (-1.0, 1.0),
 }
 RIGHT_CUBE_POSE_RANGE = {
     "x": (PLATFORM_POSITION[0] - _RESET_BOX_SIZE / 2, PLATFORM_POSITION[0] + _RESET_BOX_SIZE / 2),
     "y": (PLATFORM_POSITION[1] - _PLATFORM_HALF_Y - _RESET_BOX_SIZE, PLATFORM_POSITION[1] - _PLATFORM_HALF_Y),
-    "z": (0.0203, 0.0203),
+    "z": (CUBE_HEIGHT / 2, CUBE_HEIGHT / 2),
     "yaw": (-1.0, 1.0),
 }
 
 
-def cube_on_platform(
-    env, cube_cfg: SceneEntityCfg = SceneEntityCfg("cube_1"), height_tolerance: float = 0.01
+def cube_on_box(
+    env,
+    cube_cfg: SceneEntityCfg,
+    box_position: tuple[float, float, float],
+    box_size: tuple[float, float, float],
+    height_tolerance: float = 0.01,
 ) -> torch.Tensor:
-    """Check whether a cube's center is within the platform footprint and resting on its surface."""
+    """Check whether a cube's center is within the box footprint and resting on its surface."""
     cube_pos = env.scene[cube_cfg.name].data.root_pos_w.torch - env.scene.env_origins
 
-    dx = torch.abs(cube_pos[:, 0] - PLATFORM_POSITION[0])
-    dy = torch.abs(cube_pos[:, 1] - PLATFORM_POSITION[1])
-    within_xy = (dx < PLATFORM_SIZE[0] / 2) & (dy < PLATFORM_SIZE[1] / 2)
+    dx = torch.abs(cube_pos[:, 0] - box_position[0])
+    dy = torch.abs(cube_pos[:, 1] - box_position[1])
+    within_xy = (dx < box_size[0] / 2) & (dy < box_size[1] / 2)
 
-    expected_z = PLATFORM_POSITION[2] + PLATFORM_SIZE[2] / 2 + CUBE_REST_HEIGHT_OFFSET
+    expected_z = box_position[2] + box_size[2] / 2 + CUBE_HEIGHT / 2
     height_ok = torch.abs(cube_pos[:, 2] - expected_z) < height_tolerance
 
     return within_xy & height_ok
@@ -78,7 +82,9 @@ def cubes_packed(
 ) -> torch.Tensor:
     """Return whether both cubes are on the platform and the gripper is open."""
     robot = env.scene[robot_cfg.name]
-    packed = cube_on_platform(env, cube_1_cfg) & cube_on_platform(env, cube_2_cfg)
+    packed = cube_on_box(env, cube_1_cfg, PLATFORM_POSITION, PLATFORM_SIZE) & cube_on_box(
+        env, cube_2_cfg, PLATFORM_POSITION, PLATFORM_SIZE
+    )
     return packed & gripper_open(env, robot)
 
 
@@ -97,8 +103,8 @@ class FrankaCubePackTwoVisuomotorEnvCfg(FrankaCubeStackVisuomotorEnvCfg):
         # event re-randomizes them every episode, but the very first frame uses these poses.
         left_box_center_y = PLATFORM_POSITION[1] + _PLATFORM_HALF_Y + _RESET_BOX_SIZE / 2
         right_box_center_y = PLATFORM_POSITION[1] - _PLATFORM_HALF_Y - _RESET_BOX_SIZE / 2
-        self.scene.cube_1.init_state.pos = [PLATFORM_POSITION[0], left_box_center_y, 0.0203]
-        self.scene.cube_2.init_state.pos = [PLATFORM_POSITION[0], right_box_center_y, 0.0203]
+        self.scene.cube_1.init_state.pos = [PLATFORM_POSITION[0], left_box_center_y, CUBE_HEIGHT / 2]
+        self.scene.cube_2.init_state.pos = [PLATFORM_POSITION[0], right_box_center_y, CUBE_HEIGHT / 2]
 
         # Add a fixed rectangular platform in front of the robot. A kinematic RigidObjectCfg
         # (not AssetBaseCfg) so it's a named, non-graspable object in the scene's rigid_objects
