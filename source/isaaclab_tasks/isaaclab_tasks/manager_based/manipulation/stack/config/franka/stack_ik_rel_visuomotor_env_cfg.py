@@ -11,6 +11,7 @@ from isaaclab.managers import EventTermCfg as EventTerm
 from isaaclab.managers import ObservationGroupCfg as ObsGroup
 from isaaclab.managers import ObservationTermCfg as ObsTerm
 from isaaclab.managers import SceneEntityCfg
+from isaaclab.managers import TerminationTermCfg as DoneTerm
 from isaaclab.sensors import CameraCfg, FrameTransformerCfg
 from isaaclab.sensors.frame_transformer.frame_transformer_cfg import OffsetCfg
 from isaaclab.sim.schemas.schemas_cfg import RigidBodyPropertiesCfg
@@ -368,3 +369,31 @@ class FrankaCubeStackVisuomotorEnvCfg(StackEnvCfg):
 
         # List of image observations in policy observations
         self.image_obs_list = ["table_cam", "wrist_cam"]
+
+
+@configclass
+class FrankaCubeStackTwoVisuomotorEnvCfg(FrankaCubeStackVisuomotorEnvCfg):
+    """Visuomotor cube stacking with only the red and blue cubes (no green cube)."""
+
+    def __post_init__(self):
+        # post init of parent
+        super().__post_init__()
+
+        # Drop the green cube from the scene entirely
+        self.scene.cube_3 = None
+
+        # Only randomize the poses of the remaining two cubes
+        self.events.randomize_cube_positions.params["asset_cfgs"] = [
+            SceneEntityCfg("cube_1"),
+            SceneEntityCfg("cube_2"),
+        ]
+
+        # Drop the low-dimensional object observations, which reference the removed cube
+        self.observations.policy.object = None
+        self.observations.policy.cube_positions = None
+        self.observations.policy.cube_orientations = None
+
+        # Drop the subtask term and termination that reference the removed cube
+        self.observations.subtask_terms.grasp_2 = None
+        self.terminations.cube_3_dropping = None
+        self.terminations.success = DoneTerm(func=mdp.cubes_stacked, params={"cube_3_cfg": None})
