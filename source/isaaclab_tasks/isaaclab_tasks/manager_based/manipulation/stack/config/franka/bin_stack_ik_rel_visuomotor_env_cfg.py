@@ -7,10 +7,9 @@ import isaaclab.sim as sim_utils
 from isaaclab.managers import ObservationTermCfg as ObsTerm
 from isaaclab.managers import SceneEntityCfg
 from isaaclab.sensors import CameraCfg
-from isaaclab.utils import configclass
+from isaaclab.utils.configclass import configclass
 
-from isaaclab_tasks.manager_based.manipulation.stack import mdp
-from isaaclab_tasks.manager_based.manipulation.stack import stack_env_cfg
+from isaaclab_tasks.manager_based.manipulation.stack import mdp, stack_env_cfg
 
 from . import bin_stack_ik_rel_env_cfg
 

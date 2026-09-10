@@ -3,7 +3,7 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
-from isaaclab.utils import configclass
+from isaaclab.utils.configclass import configclass
 
 from . import stack_ik_rel_visuomotor_env_cfg
 from .stack_joint_rel_env_cfg import franka_rel_joint_action

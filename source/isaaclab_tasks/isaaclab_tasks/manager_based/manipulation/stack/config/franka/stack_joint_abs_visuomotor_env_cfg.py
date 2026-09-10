@@ -3,7 +3,7 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
-from isaaclab.utils import configclass
+from isaaclab.utils.configclass import configclass
 
 from . import stack_joint_pos_visuomotor_env_cfg
 from .stack_joint_abs_env_cfg import set_stiff_franka

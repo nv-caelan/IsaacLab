@@ -58,6 +58,18 @@ gym.register(
 )
 
 gym.register(
+    id="Isaac-Stack-Cube-Dual-Franka-Joint-Abs-Visuomotor-v0",
+    entry_point="isaaclab.envs:ManagerBasedRLEnv",
+    kwargs={
+        "env_cfg_entry_point": (
+            f"{__name__}.stack_joint_abs_visuomotor_dual_env_cfg:DualFrankaCubeStackJointAbsVisuomotorEnvCfg"
+        ),
+        "robomimic_bc_cfg_entry_point": f"{agents.__name__}:robomimic/bc_rnn_image_200_joint_pos.json",
+    },
+    disable_env_checker=True,
+)
+
+gym.register(
     id="Isaac-Stack-Cube-Franka-Joint-Rel-v0",
     entry_point="isaaclab.envs:ManagerBasedRLEnv",
     kwargs={
